@@ -45,8 +45,8 @@ func LoadSprite(filename string, cellSize uint) (*Sprite, error) {
 	imageWidth := uint(img.Bounds().Dx())
 	imageHeight := uint(img.Bounds().Dy())
 
-	log.Default().Printf("imageWidth: %d, imageHeight: %d", imageWidth, imageHeight)
-	log.Default().Printf("cellSize: %d", cellSize)
+	// log.Default().Printf("imageWidth: %d, imageHeight: %d", imageWidth, imageHeight)
+	// log.Default().Printf("cellSize: %d", cellSize)
 
 	if (imageWidth%cellSize) != 0 || (imageHeight%cellSize) != 0 {
 		return nil, errors.New("image width or height is not a multiple of cell size")

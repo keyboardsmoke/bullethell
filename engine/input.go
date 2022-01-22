@@ -8,15 +8,15 @@ import (
 type Mouse struct {
 	Position    Vec2
 	State       map[ebiten.MouseButton]bool
-	OnMouseDown []func(p Vec2, button ebiten.MouseButton) error
-	OnMouseUp   []func(p Vec2, button ebiten.MouseButton) error
-	OnMouseMove []func(p Vec2) error
+	onMouseDown []func(p Vec2, button ebiten.MouseButton) error
+	onMouseUp   []func(p Vec2, button ebiten.MouseButton) error
+	onMouseMove []func(p Vec2) error
 }
 
 type Keyboard struct {
 	PressedKeys []ebiten.Key
-	OnKeyDown   []func(key ebiten.Key) error
-	OnKeyUp     []func(key ebiten.Key) error
+	onKeyDown   []func(key ebiten.Key) error
+	onKeyUp     []func(key ebiten.Key) error
 }
 
 type InputManager struct {
@@ -24,15 +24,50 @@ type InputManager struct {
 	Keyboard *Keyboard
 }
 
+var (
+	manager *InputManager
+)
+
+func GetInputManager() *InputManager {
+	if manager == nil {
+		manager = &InputManager{
+			Mouse:    &Mouse{State: make(map[ebiten.MouseButton]bool)},
+			Keyboard: &Keyboard{},
+		}
+	}
+
+	return manager
+}
+
+func (m *Mouse) AddMouseDownCallback(f func(p Vec2, button ebiten.MouseButton) error) {
+	m.onMouseDown = append(m.onMouseDown, f)
+}
+
+func (m *Mouse) AddMouseUpCallback(f func(p Vec2, button ebiten.MouseButton) error) {
+	m.onMouseUp = append(m.onMouseUp, f)
+}
+
+func (m *Mouse) AddMouseMoveCallback(f func(p Vec2) error) {
+	m.onMouseMove = append(m.onMouseMove, f)
+}
+
+func (k *Keyboard) AddKeyDownCallback(f func(key ebiten.Key) error) {
+	k.onKeyDown = append(k.onKeyDown, f)
+}
+
+func (k *Keyboard) AddKeyUpCallback(f func(key ebiten.Key) error) {
+	k.onKeyUp = append(k.onKeyUp, f)
+}
+
 func (i *InputManager) handleMouseButton(button ebiten.MouseButton) {
 	if inpututil.IsMouseButtonJustPressed(button) {
-		for _, f := range i.Mouse.OnMouseDown {
+		for _, f := range i.Mouse.onMouseDown {
 			f(i.Mouse.Position, button)
 		}
 	}
 
 	if inpututil.IsMouseButtonJustReleased(button) {
-		for _, f := range i.Mouse.OnMouseUp {
+		for _, f := range i.Mouse.onMouseUp {
 			f(i.Mouse.Position, button)
 		}
 	}
@@ -51,7 +86,7 @@ func (i *InputManager) Update(deltaTime float64) {
 
 	// Only update position on a move
 	if lastPosition != i.Mouse.Position {
-		for _, f := range i.Mouse.OnMouseMove {
+		for _, f := range i.Mouse.onMouseMove {
 			f(i.Mouse.Position)
 		}
 	}
@@ -59,7 +94,7 @@ func (i *InputManager) Update(deltaTime float64) {
 	// Handle released keys
 	for _, key := range i.Keyboard.PressedKeys {
 		if inpututil.IsKeyJustReleased(key) {
-			for _, f := range i.Keyboard.OnKeyUp {
+			for _, f := range i.Keyboard.onKeyUp {
 				f(key)
 			}
 		}
@@ -71,7 +106,7 @@ func (i *InputManager) Update(deltaTime float64) {
 	// Handle newly pressed keys
 	for _, key := range i.Keyboard.PressedKeys {
 		if inpututil.IsKeyJustPressed(key) {
-			for _, f := range i.Keyboard.OnKeyDown {
+			for _, f := range i.Keyboard.onKeyDown {
 				f(key)
 			}
 		}

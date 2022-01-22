@@ -40,6 +40,10 @@ func GetRootFrame() *Frame {
 	return &rootFrame
 }
 
+func (f *Frame) AddSubFrame(frame *Frame) {
+	f.SubFrames = append(f.SubFrames, frame)
+}
+
 func (f *Frame) Contains(p Vec2) bool {
 	return f.Area.Contains(p)
 }
@@ -49,18 +53,7 @@ func (f *Frame) ContainsFrame(f2 *Frame) bool {
 }
 
 func (f *Frame) Update(deltaTime float64) {
-	// These should really be in some kind of global input manager
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		f.OnMouseDown(f, Vec2{}, ebiten.MouseButtonLeft)
-	}
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
-		f.OnMouseDown(f, Vec2{}, ebiten.MouseButtonRight)
-	}
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle) {
-		f.OnMouseDown(f, Vec2{}, ebiten.MouseButtonMiddle)
-	}
 
-	// inpututil.AppendPressedKeys(g.keys[:0])
 }
 
 func (f *Frame) Draw() error {

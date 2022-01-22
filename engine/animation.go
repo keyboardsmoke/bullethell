@@ -1,6 +1,8 @@
 package engine
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 type AnimationFrame struct {
 	FrameTime float64
@@ -26,13 +28,24 @@ func (a *Animation) Update(deltaTime float64) {
 	}
 
 	if (a.CurrentFrameTime + deltaTime) >= a.GetCurrentFrame().FrameTime {
-		a.GetCurrentFrame().Complete()
+		if a.GetCurrentFrame().Complete != nil {
+			a.GetCurrentFrame().Complete()
+		}
+
 		a.CurrentFrame = (a.CurrentFrame + 1) % uint(len(a.Frames))
 		a.CurrentFrameTime = 0
-		a.GetCurrentFrame().Start()
+
+		if a.GetCurrentFrame().Start != nil {
+			a.GetCurrentFrame().Start()
+		}
 	} else {
 		a.CurrentFrameTime += deltaTime
 	}
+}
+
+func (a *Animation) Reset() {
+	a.CurrentFrame = 0
+	a.CurrentFrameTime = 0
 }
 
 func (a *Animation) AddFrame(frameNumber uint, frameTime float64, startFn func(), completeFn func()) {
@@ -44,13 +57,8 @@ func (a *Animation) AddFrame(frameNumber uint, frameTime float64, startFn func()
 	})
 }
 
-func (a *Animation) Reset() {
-	a.CurrentFrame = 0
-	a.CurrentFrameTime = 0
-}
-
 func (a *Animation) Draw(dst *ebiten.Image, x, y int) {
-	a.Sprite.DrawFrame(dst, x, y, a.CurrentFrame)
+	a.Sprite.DrawFrame(dst, x, y, a.GetCurrentFrame().FrameNum)
 }
 
 func LoadAnimation(filename string, cellSize uint) (*Animation, error) {
@@ -60,8 +68,9 @@ func LoadAnimation(filename string, cellSize uint) (*Animation, error) {
 	}
 
 	return &Animation{
-		Sprite:       sprite,
-		Frames:       []AnimationFrame{},
-		CurrentFrame: 0,
+		Sprite:           sprite,
+		Frames:           []AnimationFrame{},
+		CurrentFrame:     0,
+		CurrentFrameTime: 0,
 	}, nil
 }
