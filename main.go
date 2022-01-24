@@ -2,6 +2,7 @@ package main
 
 import (
 	"bh/engine"
+	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -20,34 +21,46 @@ const (
 )
 
 type Game struct {
-	newTime      int64
-	oldTime      int64
-	deltaTime    float64
+	lastUpdate   time.Time
 	cam          engine.Camera
 	audioContext *audio.Context
 	ScreenWidth  int
 	ScreenHeight int
 	DebugFont    *engine.Font
 	Blob         *engine.Animation
-	// Blob         *engine.Sprite
-
+	RootFrame    *engine.Frame
 }
 
 func (g *Game) Update() error {
-	g.newTime = time.Now().UnixNano()
-	g.deltaTime = float64(((g.newTime - g.oldTime) / 1000000)) * 0.001
-	g.oldTime = g.newTime
+	now := time.Now()
+	deltaTime := float64(now.Sub(g.lastUpdate).Microseconds()) / 1000.0
 
-	g.Blob.Update(g.deltaTime)
+	// Update inputs :)
+	engine.GetInputManager().Update(deltaTime)
+
+	// Update each child frame with this
+	g.RootFrame.Update(deltaTime)
+
+	// Entity updates
+	g.Blob.Update(deltaTime)
+
+	g.lastUpdate = now
 
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.DebugFont.Draw(screen, "Hello World!", 20, 20, color.White)
 
-	// g.Blob.DrawFrame(screen, 50, 50, 0)
-	// g.Blob.DrawFrame(screen, 50, 100, g.Blob.NumberOfFrames-1)
+	fps := fmt.Sprintf("FPS: %f", ebiten.CurrentFPS())
+	mouseInfo := fmt.Sprintf("Mouse: %t, %t",
+		engine.GetInputManager().Mouse.State[0], engine.GetInputManager().Mouse.State[1])
+
+	g.DebugFont.Draw(screen, fps, 10, 20, color.White)
+	g.DebugFont.Draw(screen, mouseInfo, 10, 40, color.White)
+
+	// g.DebugFont.Draw(screen, "Hello World!", 20, 20, color.White)
+
+	g.Blob.Draw(screen, 50, 50)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -66,8 +79,9 @@ func (g *Game) Start() {
 		log.Fatal(err)
 	}
 
-	blobAnim.AddFrame(0, 100.0, nil, nil)
-	blobAnim.AddFrame(1, 100.0, nil, nil)
+	blobAnim.AddFrame(0, 200.0, nil, nil)
+	blobAnim.AddFrame(1, 200.0, nil, nil)
+	blobAnim.AddFrame(2, 200.0, nil, nil)
 
 	g.Blob = blobAnim
 

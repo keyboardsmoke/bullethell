@@ -61,12 +61,14 @@ func (k *Keyboard) AddKeyUpCallback(f func(key ebiten.Key) error) {
 
 func (i *InputManager) handleMouseButton(button ebiten.MouseButton) {
 	if inpututil.IsMouseButtonJustPressed(button) {
+		i.Mouse.State[button] = true
 		for _, f := range i.Mouse.onMouseDown {
 			f(i.Mouse.Position, button)
 		}
 	}
 
 	if inpututil.IsMouseButtonJustReleased(button) {
+		i.Mouse.State[button] = false
 		for _, f := range i.Mouse.onMouseUp {
 			f(i.Mouse.Position, button)
 		}

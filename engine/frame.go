@@ -53,7 +53,7 @@ func (f *Frame) ContainsFrame(f2 *Frame) bool {
 }
 
 func (f *Frame) Update(deltaTime float64) {
-
+	//
 }
 
 func (f *Frame) Draw() error {
